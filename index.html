@@ -1,166 +1,444 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Live Visual Effects Lab</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Live Visual Effects Lab — All features</title>
 <style>
-/* --- Your original styles --- */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #181313;
-    background-image: linear-gradient(310deg ,#093240 10%, #b1d1b1 30%, #b955a0 200%);
-    color: #d4d4d4;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    box-sizing: border-box;
-}
-main {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: flex-start;
-}
-canvas {
-    background-color: rgb(202, 169, 169);
-    border: 2px solid #444;
-    border-radius: 8px;
-    max-width: 100%;
-    height: auto;
-}
-.controls-panel {
-    background-color: #746565;
-    padding: 20px;
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    width: 300px;
-}
-button {
-    padding: 10px 15px;
-    font-size: 0.9em;
-    cursor: pointer;
-    border-radius: 5px;
-    border: none;
-    background-color: #007acc;
-    color: white;
-}
-button:hover { background-color: #0099e6; }
-button:disabled { background-color: #555; cursor: not-allowed; }
-.hidden { display: none; }
-.record-controls {
-    margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
-}
+  :root{--panel-bg:#746565;--accent:#007acc}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background: linear-gradient(310deg,#093240 10%,#b1d1b1 30%,#b955a0 200%);
+    color:#d4d4d4;
+    margin:0;padding:18px;box-sizing:border-box;min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  }
+  h1{margin:0 0 12px 0}
+  main{display:flex;gap:18px;flex-wrap:wrap;justify-content:center;width:100%;max-width:1200px}
+  .video-container{display:flex;flex-direction:column;align-items:center;gap:12px}
+  video{display:none}
+  canvas{background:#111;border-radius:8px;border:2px solid #444;max-width:100%;height:auto}
+  .record-controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+  .controls-panel{background:var(--panel-bg);padding:16px;border-radius:8px;min-width:280px;max-width:320px;display:flex;flex-direction:column;gap:12px}
+  .effect-group{background:rgba(0,0,0,0.06);padding:10px;border-radius:6px;border:1px solid rgba(255,255,255,0.03)}
+  label{font-size:0.9rem}
+  input[type="range"]{width:100%}
+  input[type="color"]{width:48px;height:28px;border:0;background:transparent;vertical-align:middle}
+  button{padding:9px 12px;border-radius:6px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+  button[disabled]{background:#555;cursor:not-allowed}
+  .small{font-size:0.85rem;color:#eee}
+  .hidden{display:none}
 </style>
 </head>
 <body>
-<h1>Live Visual Effects Lab</h1>
-<main>
+  <h1>Live Visual Effects Lab</h1>
+  <main>
     <div class="video-container">
-        <video id="video" playsinline class="hidden"></video>
-        <canvas id="canvas"></canvas>
-        <div class="record-controls">
-            <button id="startButton">Start Camera</button>
-            <button id="switchCam" disabled>Switch Camera</button>
-            <button id="recordButton" disabled>Start Recording</button>
-            <button id="stopButton" disabled>Stop Recording</button>
-            <button id="downloadButton" class="hidden">Download Video</button>
-        </div>
+      <video id="video" playsinline></video>
+      <canvas id="canvas"></canvas>
+
+      <div class="record-controls">
+        <button id="startButton">Start Camera</button>
+        <button id="switchCam" disabled>Switch Camera</button>
+        <button id="recordButton" disabled>Start Recording</button>
+        <button id="stopButton" disabled>Stop Recording</button>
+        <button id="downloadButton" class="hidden">Download Video</button>
+      </div>
+      <div class="small">Tip: open in Chrome / Safari (not an in-app browser). On iOS tap Start Camera first.</div>
     </div>
+
     <div class="controls-panel">
-        <!-- Keep your effect controls here (unchanged from original) -->
-        <!-- Example: -->
-        <div class="effect-group">
-            <input type="checkbox" id="ditherEnable">
-            <label>Dithering</label>
+      <!-- Dithering -->
+      <div class="effect-group">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="ditherEnable">
+          <h3 style="margin:0;font-size:1rem">Dithering</h3>
         </div>
-        <!-- Add other effect controls from your original file -->
+        <label for="ditherAlgorithm">Algorithm</label>
+        <select id="ditherAlgorithm">
+          <option value="bayer">Ordered (Bayer)</option>
+          <option value="floyd">Floyd–Steinberg</option>
+        </select>
+        <label for="ditherLevels">Levels: <span id="levelsValue">4</span></label>
+        <input type="range" id="ditherLevels" min="2" max="16" value="4">
+      </div>
+
+      <!-- Stippling / CRT / Scanlines -->
+      <div class="effect-group">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="crtEnable">
+          <h3 style="margin:0;font-size:1rem">CRT / Scanlines</h3>
+        </div>
+        <label for="scanlineOpacity">Scanline Opacity: <span id="scanlineValue">0.2</span></label>
+        <input type="range" id="scanlineOpacity" min="0" max="1" step="0.05" value="0.2">
+        <div style="height:8px"></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="stipplingEnable">
+          <label style="margin:0">Stippling (B/W)</label>
+        </div>
+        <label for="stipplingThreshold">Stippling Threshold: <span id="stipplingValue">50</span></label>
+        <input type="range" id="stipplingThreshold" min="0" max="255" value="50">
+      </div>
+
+      <!-- Edge Detection -->
+      <div class="effect-group">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="edgeEnable">
+          <h3 style="margin:0;font-size:1rem">Edge Detection</h3>
+        </div>
+        <label for="edgeThreshold">Edge Threshold: <span id="edgeValue">50</span></label>
+        <input type="range" id="edgeThreshold" min="0" max="255" value="50">
+      </div>
+
+      <!-- Distort -->
+      <div class="effect-group">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="distortEnable">
+          <h3 style="margin:0;font-size:1rem">Distort / Displace</h3>
+        </div>
+        <label for="distortAmount">Amount: <span id="distortValue">5</span></label>
+        <input type="range" id="distortAmount" min="0" max="60" value="5">
+      </div>
+
+      <!-- Recolor -->
+      <div class="effect-group">
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="recolorEnable">
+          <h3 style="margin:0;font-size:1rem">Recolor / Gradient</h3>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <label for="colorStart">Start</label>
+          <input type="color" id="colorStart" value="#000000">
+          <label for="colorEnd">End</label>
+          <input type="color" id="colorEnd" value="#ffffff">
+        </div>
+      </div>
     </div>
-</main>
+  </main>
 
 <script>
+/* --------- DOM refs --------- */
 const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
 const startButton = document.getElementById('startButton');
 const switchCamButton = document.getElementById('switchCam');
 const recordButton = document.getElementById('recordButton');
 const stopButton = document.getElementById('stopButton');
 const downloadButton = document.getElementById('downloadButton');
 
-let useFront = true; 
-let currentStream;
-let mediaRecorder, recordedChunks = [];
+/* controls */
+const ditherEnable = document.getElementById('ditherEnable');
+const ditherAlgorithm = document.getElementById('ditherAlgorithm');
+const ditherLevels = document.getElementById('ditherLevels');
+const levelsValue = document.getElementById('levelsValue');
 
-// Start camera with facing mode
+const crtEnable = document.getElementById('crtEnable');
+const scanlineOpacity = document.getElementById('scanlineOpacity');
+const scanlineValue = document.getElementById('scanlineValue');
+
+const stipplingEnable = document.getElementById('stipplingEnable');
+const stipplingThreshold = document.getElementById('stipplingThreshold');
+const stipplingValue = document.getElementById('stipplingValue');
+
+const edgeEnable = document.getElementById('edgeEnable');
+const edgeThreshold = document.getElementById('edgeThreshold');
+const edgeValue = document.getElementById('edgeValue');
+
+const distortEnable = document.getElementById('distortEnable');
+const distortAmount = document.getElementById('distortAmount');
+const distortValue = document.getElementById('distortValue');
+
+const recolorEnable = document.getElementById('recolorEnable');
+const colorStart = document.getElementById('colorStart');
+const colorEnd = document.getElementById('colorEnd');
+
+/* labels update */
+ditherLevels.oninput = () => levelsValue.textContent = ditherLevels.value;
+scanlineOpacity.oninput = () => scanlineValue.textContent = scanlineOpacity.value;
+stipplingThreshold.oninput = () => stipplingValue.textContent = stipplingThreshold.value;
+edgeThreshold.oninput = () => edgeValue.textContent = edgeThreshold.value;
+distortAmount.oninput = () => distortValue.textContent = distortAmount.value;
+
+/* --------- state --------- */
+let useFront = true;
+let currentStream = null;
+let animationFrameId = null;
+
+/* recording */
+let mediaRecorder = null;
+let recordedChunks = [];
+
+/* bayer matrix for ordered dither */
+const bayerMatrix = [[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const matrixSize = 4;
+
+/* --------- camera setup & switching --------- */
 async function startCamera() {
-    if (currentStream) currentStream.getTracks().forEach(track => track.stop());
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: useFront ? "user" : "environment" },
-            audio: false
-        });
-        currentStream = stream;
-        video.srcObject = stream;
-        await video.play();
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        startButton.disabled = true;
-        switchCamButton.disabled = false;
-        recordButton.disabled = false;
-        mainLoop();
-    } catch (err) {
-        alert("Could not access camera: " + err.message);
-    }
-}
+  // stop existing
+  if (currentStream) {
+    currentStream.getTracks().forEach(t => t.stop());
+    currentStream = null;
+  }
+  try {
+    // prefer ideal resolution but fallback is fine
+    const constraints = {
+      video: { facingMode: useFront ? "user" : "environment", width: {ideal:1280}, height: {ideal:720} },
+      audio: false
+    };
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    currentStream = stream;
+    video.srcObject = stream;
+    await video.play();
 
-// Main drawing loop
-function mainLoop() {
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    // Apply your effects here...
-    requestAnimationFrame(mainLoop);
-}
+    // size canvas to video dimensions (fallback to visible width)
+    const vw = video.videoWidth || Math.floor(window.innerWidth * 0.9);
+    const vh = video.videoHeight || Math.floor(vw * (3/4));
+    canvas.width = vw;
+    canvas.height = vh;
 
-// Switch between cameras
-switchCamButton.addEventListener('click', () => {
-    useFront = !useFront;
-    startCamera();
-});
-
-// Recording functions
-recordButton.addEventListener('click', () => {
-    const stream = canvas.captureStream(30);
-    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
-    recordedChunks = [];
-    mediaRecorder.ondataavailable = e => e.data.size && recordedChunks.push(e.data);
-    mediaRecorder.start();
-    recordButton.disabled = true;
-    stopButton.disabled = false;
-});
-stopButton.addEventListener('click', () => {
-    mediaRecorder.stop();
+    // show/hide and enable buttons
+    video.style.display = 'none'; // keep video hidden; we draw to canvas
+    switchCamButton.disabled = false;
     recordButton.disabled = false;
-    stopButton.disabled = true;
-    downloadButton.classList.remove('hidden');
-});
-downloadButton.addEventListener('click', () => {
-    const blob = new Blob(recordedChunks, { type: 'video/webm' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = "recorded-video.webm";
-    a.click();
-    URL.revokeObjectURL(url);
+    startButton.disabled = true;
+
+    // start main loop
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    mainLoop();
+  } catch (err) {
+    console.error(err);
+    alert("Could not access webcam. Make sure you opened the HTTPS site and granted camera permission.\n\nError: " + (err.message || err));
+  }
+}
+
+switchCamButton.addEventListener('click', () => {
+  useFront = !useFront;
+  startCamera();
 });
 
-// Start camera on button click
+/* --------- main render loop --------- */
+let t = 0;
+function mainLoop() {
+  t += 0.08;
+  // draw current video frame to canvas
+  try {
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  } catch(e) {
+    // drawing may fail if video not ready; try again next frame
+  }
+
+  let imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+
+  // apply effects in this order (some effects expect color input)
+  if (distortEnable.checked) applyDistort(imageData, t);
+  if (edgeEnable.checked) applyEdgeDetection(imageData);
+  if (ditherEnable.checked) {
+    if (ditherAlgorithm.value === 'bayer') applyBayerDither(imageData);
+    else applyFloydSteinbergDither(imageData);
+  }
+  if (stipplingEnable.checked) applyStippling(imageData);
+  if (recolorEnable.checked) applyRecolor(imageData);
+  if (crtEnable.checked) applyCRTEffect(imageData);
+
+  ctx.putImageData(imageData, 0, 0);
+  animationFrameId = requestAnimationFrame(mainLoop);
+}
+
+/* --------- Effects implementations --------- */
+
+function applyDistort(imageData, time) {
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  const original = new Uint8ClampedArray(data); // copy
+  const amount = Number(distortAmount.value) || 0;
+
+  for (let y=0;y<height;y++){
+    for (let x=0;x<width;x++){
+      const offsetY = Math.round(Math.sin((y/20) + time) * amount);
+      const offsetX = Math.round(Math.sin((x/30) + time/1.5) * amount);
+      let sx = Math.max(0, Math.min(width-1, x + offsetX));
+      let sy = Math.max(0, Math.min(height-1, y + offsetY));
+      const sidx = (sy*width + sx) * 4;
+      const didx = (y*width + x) * 4;
+      data[didx] = original[sidx];
+      data[didx+1] = original[sidx+1];
+      data[didx+2] = original[sidx+2];
+      // alpha unchanged
+    }
+  }
+}
+
+function applyEdgeDetection(imageData) {
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  const threshold = Number(edgeThreshold.value) || 50;
+
+  // compute grayscale
+  const gray = new Float32Array(width*height);
+  for (let i=0, j=0;i<data.length;i+=4,j++){
+    gray[j] = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+  }
+
+  // simple Sobel-like operator
+  for (let y=1;y<height-1;y++){
+    for (let x=1;x<width-1;x++){
+      const i = y*width + x;
+      const gx = -gray[i-width-1] - 2*gray[i-1] - gray[i+width-1] + gray[i-width+1] + 2*gray[i+1] + gray[i+width+1];
+      const gy = -gray[i-width-1] - 2*gray[i-width] - gray[i-width+1] + gray[i+width-1] + 2*gray[i+width] + gray[i+width+1];
+      const mag = Math.sqrt(gx*gx + gy*gy);
+      const color = mag > threshold ? 255 : 0;
+      const idx = i*4;
+      data[idx] = data[idx+1] = data[idx+2] = color;
+    }
+  }
+}
+
+function applyBayerDither(imageData) {
+  const data = imageData.data;
+  const levels = Math.max(2, Number(ditherLevels.value) || 4);
+  const step = 255 / (levels - 1);
+
+  const w = imageData.width;
+  for (let i=0;i<data.length;i+=4){
+    const px = (i/4) % w;
+    const py = Math.floor((i/4)/w);
+    const gray = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+    const threshold = bayerMatrix[py % matrixSize][px % matrixSize];
+    const bias = threshold * (255 / (matrixSize*matrixSize));
+    const finalColor = Math.round((gray + bias) / step) * step;
+    data[i] = data[i+1] = data[i+2] = finalColor;
+  }
+}
+
+function applyFloydSteinbergDither(imageData) {
+  const width = imageData.width, height = imageData.height;
+  const data = imageData.data;
+  const gray = new Float32Array(width*height);
+  for (let i=0,j=0;i<data.length;i+=4,j++) gray[j] = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+
+  const levels = Math.max(2, Number(ditherLevels.value) || 4);
+  const step = 255 / (levels - 1);
+
+  for (let y=0;y<height;y++){
+    for (let x=0;x<width;x++){
+      const i = y*width + x;
+      const oldVal = gray[i];
+      const newVal = Math.round(oldVal/step) * step;
+      const err = oldVal - newVal;
+      gray[i] = newVal;
+      if (x+1 < width) gray[i+1] += err * 7/16;
+      if (x-1 >=0 && y+1 < height) gray[i-1+width] += err * 3/16;
+      if (y+1 < height) gray[i+width] += err * 5/16;
+      if (x+1 < width && y+1 < height) gray[i+1+width] += err * 1/16;
+    }
+  }
+  for (let i=0;i<gray.length;i++){
+    const v = Math.max(0, Math.min(255, gray[i]));
+    data[i*4] = data[i*4+1] = data[i*4+2] = v;
+  }
+}
+
+function applyStippling(imageData) {
+  const data = imageData.data;
+  const threshold = Number(stipplingThreshold.value) || 50;
+  for (let i=0;i<data.length;i+=4){
+    const gray = data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114;
+    const out = gray < threshold ? 0 : 255;
+    data[i] = data[i+1] = data[i+2] = out;
+  }
+}
+
+function applyRecolor(imageData) {
+  const data = imageData.data;
+  const s = hexToRgb(colorStart.value);
+  const e = hexToRgb(colorEnd.value);
+  if (!s || !e) return;
+  for (let i=0;i<data.length;i+=4){
+    const gray = (data[i]*0.299 + data[i+1]*0.587 + data[i+2]*0.114) / 255;
+    data[i]   = Math.round(s.r + (e.r - s.r) * gray);
+    data[i+1] = Math.round(s.g + (e.g - s.g) * gray);
+    data[i+2] = Math.round(s.b + (e.b - s.b) * gray);
+  }
+}
+
+function applyCRTEffect(imageData) {
+  const data = imageData.data;
+  const width = imageData.width;
+  const opacity = Math.max(0, Math.min(1, Number(scanlineOpacity.value) || 0.2));
+  // simple scanline darkening
+  for (let y=0;y<imageData.height;y+=2){
+    for (let x=0;x<width;x++){
+      const i = (y*width + x) * 4;
+      data[i] *= (1 - opacity);
+      data[i+1] *= (1 - opacity);
+      data[i+2] *= (1 - opacity);
+    }
+  }
+  // optional slight vignette / noise could be added here
+}
+
+/* --------- recording functions --------- */
+recordButton.addEventListener('click', () => {
+  try {
+    const stream = canvas.captureStream(30);
+    mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+  } catch (err) {
+    // fallback if codec not supported
+    try {
+      const stream = canvas.captureStream(30);
+      mediaRecorder = new MediaRecorder(stream);
+    } catch (e) {
+      alert("Recording is not supported in this browser.");
+      console.error(e);
+      return;
+    }
+  }
+
+  recordedChunks = [];
+  mediaRecorder.ondataavailable = e => { if (e.data && e.data.size) recordedChunks.push(e.data); };
+  mediaRecorder.onstop = () => {
+    downloadButton.classList.remove('hidden');
+    stopButton.disabled = true;
+    recordButton.disabled = false;
+  };
+  mediaRecorder.start();
+  recordButton.disabled = true;
+  stopButton.disabled = false;
+  downloadButton.classList.add('hidden');
+});
+
+stopButton.addEventListener('click', () => {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+});
+
+downloadButton.addEventListener('click', () => {
+  if (!recordedChunks.length) return;
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `visual-effects-${new Date().toISOString()}.webm`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+/* --------- util --------- */
+function hexToRgb(hex) {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? { r: parseInt(m[1],16), g: parseInt(m[2],16), b: parseInt(m[3],16) } : null;
+}
+
+/* --------- start button handler --------- */
 startButton.addEventListener('click', startCamera);
+
+/* --------- handle page unload: stop camera --------- */
+window.addEventListener('beforeunload', () => {
+  if (currentStream) currentStream.getTracks().forEach(t => t.stop());
+  if (mediaRecorder && mediaRecorder.state === 'recording') mediaRecorder.stop();
+});
 </script>
 </body>
 </html>
